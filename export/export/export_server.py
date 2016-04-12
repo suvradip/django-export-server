@@ -2,6 +2,7 @@ import os
 import cairo, rsvg
 
 
+from wand.image import Image
 from wand.api import library
 import wand.color
 import wand.image
@@ -86,7 +87,7 @@ class FcExporterController:
   	return requestObject
   		
   def convertSVGtoImage(self, svgString, exportFileName, exportFileFormat):
-    #completeFileName = self.SAVE_PATH+exportFileName+"."+exportFileFormat
+    completeFileName = self.SAVE_PATH+exportFileName+"."+exportFileFormat
     ## cairosvg.svg2png(bytestring=svgString, write_to=completeFileName)
     # svg = rsvg.Handle(data=svgString) 
     # width = svg.props.width 
@@ -99,11 +100,14 @@ class FcExporterController:
     # surf.finish() 
     print "complete write" 
 
-    with wand.image.Image(blob=str(svgString), format="svg") as image:
-      with wand.color.Color('transparent') as background_color:
-          library.MagickSetBackgroundColor(image.wand, background_color.resource) 
-      #image.read(blob=svgString, format="svg")
-      png_image = image.make_blob("png")
+    # with wand.image.Image(blob=str(svgString), format="svg") as image:
+    #   with wand.color.Color('transparent') as background_color:
+    #       library.MagickSetBackgroundColor(image.wand, background_color.resource) 
+    #   #image.read(blob=svgString, format="svg")
+    #   png_image = image.make_blob("png")
 
-    with open('test.png', "wb") as out:
-      out.write(png_image)  
+    # with open('test.png', "wb") as out:
+    #   out.write(png_image)
+    with Image( blob=str(svgString), format="svg" ) as original:
+      #original.type = 'truecolor'
+      original.save(filename=completeFileName)  

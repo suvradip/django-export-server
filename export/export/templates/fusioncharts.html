@@ -12,67 +12,60 @@
         "height": "300",
         "dataFormat": "json",
         "dataSource":  {
-          "chart": {
-            "caption": "Monthly revenue for last year",
-            "subCaption": "Harry's SuperMart",
-            "xAxisName": "Month",
-            "yAxisName": "Revenues (In USD)",
-            "theme": "fint",
-            "exportEnabled": 1,
-            "exportAtClient": 0,
-            "exportHandler" : "http://127.0.0.1:8000/export-chart/"
-         },
-         "data": [
-            {
-               "label": "Jan",
-               "value": "420000"
-            },
-            {
-               "label": "Feb",
-               "value": "810000"
-            },
-            {
-               "label": "Mar",
-               "value": "720000"
-            },
-            {
-               "label": "Apr",
-               "value": "550000"
-            },
-            {
-               "label": "May",
-               "value": "910000"
-            },
-            {
-               "label": "Jun",
-               "value": "510000"
-            },
-            {
-               "label": "Jul",
-               "value": "680000"
-            },
-            {
-               "label": "Aug",
-               "value": "620000"
-            },
-            {
-               "label": "Sep",
-               "value": "610000"
-            },
-            {
-               "label": "Oct",
-               "value": "490000"
-            },
-            {
-               "label": "Nov",
-               "value": "900000"
-            },
-            {
-               "label": "Dec",
-               "value": "730000"
-            }
-          ]
-      }
+        "chart": {
+        "caption": "Most Popular Superhero on Youtube",
+        "subcaption": "August 2013",
+        "yaxisname": "Total time spent watching",
+        //"bgalpha": "0",
+       
+        "showvalues": "0",
+        //"showborder": "0",
+        //"canvasborderalpha": "0",
+        "showalternatehgridcolor": "0",
+        "plotgradientcolor": "",
+        "showplotborder": "0",
+        "divlinealpha": "10",
+        "formatnumberscale": "1",
+        "numberscalevalue": "24,31,12",
+        "numberscaleunit": " days, months, years",
+        "palettecolors": "#008ee4,#9b59b6,#6baa01,#e44a00,#f8bd19,#d35400,#bdc3c7,#95a5a6,#34495e,#1abc9c",
+        "defaultnumberscale": "hrs",
+        //"canvasBgColor": "#FF5904",
+        "exportEnabled": 1,
+        "exportAtClient": 0,
+        "exportHandler" : "http://127.0.0.1:8000/export-chart/"
+    },
+    "data": [
+        {
+            "label": "Batman",
+            "value": "71000"
+        },
+        {
+            "label": "Thor",
+            "value": "66000"
+        },
+        {
+            "label": "Iron Man",
+            "value": "20000"
+        },
+        {
+            "label": "Superman",
+            "value": "14000"
+        },
+        {
+            "label": "Wolverine",
+            "value": "7800"
+        },
+        {
+            "label": "Spider Man",
+            "value": "7400"
+        },
+        {
+            "label": "Captain America",
+            "value": "4900"
+        }
+    ]
+}
 
   });
 revenueChart.render();
