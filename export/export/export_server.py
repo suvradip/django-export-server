@@ -6,6 +6,8 @@ import sys
 sys.path.append('/usr/share/inkscape/extensions')
 
 import subprocess
+import shutil
+import re
 
 class FcExporterController:
 
@@ -23,7 +25,6 @@ class FcExporterController:
     stream = requestObject['stream']
 
     resp = self.convertSVGtoImage(stream, requestObject['exportFileName'] ,requestObject['exportFormat'])
-    print 'test'
     return resp
   
   # this function check for the directories needed to export image
@@ -88,26 +89,30 @@ class FcExporterController:
   		
   def convertSVGtoImage(self, svgString, exportFileName, exportFileFormat):
     completeFileName = self.SAVE_PATH+exportFileName+"."+exportFileFormat
-    imageData = ''
-    if(exportFileFormat.lower() != 'pdf'):
+    print self.SAVE_PATH
+    if(exportFileFormat.lower() == 'svg'):
+      self.exportedData = svgString
+
+    elif(exportFileFormat.lower() != 'pdf'):
       with Image( blob=str(svgString), format="svg" ) as img:
         img.UNIT_TYPES= "pixelsperinch"
         #img.save(filename=completeFileName)
-        imageData = img.make_blob(exportFileFormat)
+        self.exportedData  = img.make_blob(exportFileFormat)
     
-    else:
-
-      fo = open("temp.svg", "wb")
+    elif(exportFileFormat.lower() == 'pdf'):
+      fo = open(self.SAVE_PATH + "temp.svg", "wb")
       fo.write(svgString);
 
       # Close opend file
       fo.close()
-      p=subprocess.call(['/usr/bin/inkscape', '--file=temp.svg', '--export-pdf=ex.pdf'])
-      imageData = open("temp.svg", "wb")
+      p=subprocess.call(['/usr/bin/inkscape', '--file=temp.svg', '--export-pdf='+ self.SAVE_PATH +'tempExp.pdf'])
+      f = open(self.SAVE_PATH +"tempExp.pdf", "r")
+      self.exportedData  = f.read()
+      shutil.rmtree(self.SAVE_PATH, ignore_errors=True)
+      
 
     response = HttpResponse(content_type='application/'+exportFileFormat)
-    response.write(imageData)
+    response.write(self.exportedData )
     response["Content-Disposition"]= "attachment; filename=converted." + exportFileFormat  
     
-    print "complete write"
     return response  
