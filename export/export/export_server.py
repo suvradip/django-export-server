@@ -19,13 +19,16 @@ class FcExporterController:
   def __init__(self, request):
     self.request = request
 
-  def start(self):
+  def init(self):
     self.checkAndCreateDirectories([FcExporterController.SAVE_PATH])
     requestObject = self.parseRequestParams(self.request.POST)
     stream = requestObject['stream']
+    print "tesss"
+    # replacing single-quote with nothing because of converting in jpg image
+    stream = re.sub(r'\'', "", stream)
 
-    resp = self.convertSVGtoImage(stream, requestObject['exportFileName'] ,requestObject['exportFormat'])
-    return resp
+    response = self.convertSVGtoImage(stream, requestObject['exportFileName'] ,requestObject['exportFormat'])
+    return response
   
   # this function check for the directories needed to export image
   # if not present then it creates the directories
@@ -86,7 +89,8 @@ class FcExporterController:
   	}
 
   	return requestObject
-  		
+
+  # This function coverts the provided SVG string to image or pdf file		
   def convertSVGtoImage(self, svgString, exportFileName, exportFileFormat):
     completeFileName = self.SAVE_PATH+exportFileName+"."+exportFileFormat
     print self.SAVE_PATH
@@ -105,12 +109,12 @@ class FcExporterController:
 
       # Close opend file
       fo.close()
-      p=subprocess.call(['/usr/bin/inkscape', '--file=temp.svg', '--export-pdf='+ self.SAVE_PATH +'tempExp.pdf'])
+      p=subprocess.call(['/usr/bin/inkscape', '--file='+ self.SAVE_PATH +'temp.svg', '--export-pdf='+ self.SAVE_PATH +'tempExp.pdf'])
       f = open(self.SAVE_PATH +"tempExp.pdf", "r")
       self.exportedData  = f.read()
       shutil.rmtree(self.SAVE_PATH, ignore_errors=True)
       
-
+    # this code sends the provided file as downloadable to the browser as a response 
     response = HttpResponse(content_type='application/'+exportFileFormat)
     response.write(self.exportedData )
     response["Content-Disposition"]= "attachment; filename=converted." + exportFileFormat  

@@ -19,7 +19,6 @@ from . import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^dem/', views.test1, name='index'),
     url(r'^fc/', views.fc, name='fc'),
-    url(r'^export-chart/', views.exportTest, name='exportTest'),
+    url(r'^export-chart/', views.export_chart, name='exportChart'),
 ]
