@@ -20,6 +20,7 @@ class FcExporterController:
 
   # settings variable declaration begins
   SAVE_PATH = "export/exported_images/"
+  INKSCAPE_PATH = "/usr/bin/inkscape"
   # settings variable declaration ends
 
   '''
@@ -189,7 +190,7 @@ class FcExporterController:
       fo.close()
 
       #using inkscape to conver SVG to PDF 
-      p=subprocess.call(['/usr/bin/inkscape', '--file='+ self.SAVE_PATH +'temp.svg', '--export-pdf='+ self.SAVE_PATH +'tempExp.pdf'])
+      p=subprocess.call([self.INKSCAPE_PATH, '--file='+ self.SAVE_PATH +'temp.svg', '--export-pdf='+ self.SAVE_PATH +'tempExp.pdf'])
       f = open(self.SAVE_PATH +"tempExp.pdf", "r")
       exportedData  = f.read()
       f.close()
