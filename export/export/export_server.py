@@ -10,9 +10,8 @@ Installing wand and inkscape in ubuntu
     2.)  $ apt-get install libmagickwand-dev
     3.)  $ pip install Wand
 '''
-import os, sys, subprocess, shutil, re
+import os, sys, subprocess, shutil, re, json
 from django.http import HttpResponse
-
 # Importing wand module
 from wand.image import Image
 
@@ -23,32 +22,62 @@ class FcExporterController:
   SAVE_PATH = "export/exported_images/"
   # settings variable declaration ends
 
-  # this method should be called as http://localhost:<PORT-NUMBER(eg. 3000)>/fc_exporter/init/ from javascript
+  '''
+  in the view, import the fusioncharts_export_server module and this method should be called from view like
+  def export_chart(request):
+    export = FcExporterController(request).init()
+    return export
+
+  set the url dispatcher in urls.py as
+  url(r'^fc_exporter/', views.export_chart, name='exportChart'),
+
+  add exporthandler in fusioncharts datasouce as
+  "exportHandler" : "http://localhost:<PORT-NUMBER(eg. 3000)>/fc_exporter/"
+  '''
+
+  # initialinzing request object in instance variable
   def __init__(self, request):
     self.request = request
 
+
+  # export related operation done here  
   def init(self):
-    self.checkAndCreateDirectories([self.SAVE_PATH])
-    requestObject = self.parseRequestParams(self.request.POST)
-    if(type(requestObject) is str):
-      return self.raiseError(400)
+    # this function `checkAndCreateDirectories` check for the directories needed to export image
+    mkdirResponse = self.checkAndCreateDirectories(self.SAVE_PATH)
 
-    elif(type(requestObject) is dict):
-      stream = requestObject['stream']
-      # replacing single-quote with nothing because of converting in jpg image
-      stream = re.sub(r'\'', "", stream)
-      response = self.convertSVGtoImage(stream, requestObject['exportFileName'] ,requestObject['exportFormat'])
-      return response
+    if(not isinstance(mkdirResponse, HttpResponse)):
+      # This function `parseRequestParams` purse the request and create the request Data object
+      requestObject = self.parseRequestParams(self.request.POST)
 
-    elif(isinstance(requestObject, HttpResponse)):
-      return requestObject    
+      if(type(requestObject) is str):
+        return self.raiseError(400)
+
+      elif(type(requestObject) is dict):
+        stream = requestObject['stream']
+        # replacing single-quote with nothing because of converting in jpg image
+        stream = re.sub(r'\'', "", stream)
+
+        if(requestObject['imageData']):
+          stream = self.replaceImageToSVG(stream, requestObject['imageData'])
+        
+        response = self.convertSVGtoImage(stream, requestObject['exportFileName'] ,requestObject['exportFormat'])
+        return response
+
+      elif(isinstance(requestObject, HttpResponse)):
+        return requestObject
+    else:
+      return mkdirResponse        
   
-  # this function check for the directories needed to export image
+
+  # this function check for the directories needed to export image and 
   # if not present then it creates the directories
-  def checkAndCreateDirectories(self, directoriesNameArray):
-    for loc in directoriesNameArray:
-      if(not os.path.isdir(loc)):
-        os.mkdir(loc)
+  def checkAndCreateDirectories(self, location):
+    if(not os.path.isdir(location)):
+      try:
+        os.mkdir(location)
+        return 'success'
+      except Exception, e:
+        return HttpResponse(e)
    
 
 	# This function purse the request and create the request Data object
@@ -112,11 +141,33 @@ class FcExporterController:
       400 : " Bad request.", 
       401 : " Unauthorized access.", 
       403 : " Directory write access forbidden.", 
-      404 : " Export Resource not found."
+      404 : " Export Resource not found.",
+      405 : " Writing permission denined"
     }
     return HttpResponse(errorArray[errorCode]) 
    
 
+  # this function replaces the image href with image data 
+  def replaceImageToSVG(self, svgString, imageData):
+    imageDataArray = json.loads(imageData) # parsing the image data object
+    keys = imageDataArray.keys() # holds the keys like image_1, image_2 etc
+    # matches array holds the physical paths of images lies in the SVG  
+    matches =re.findall(r'xlink:href\s*=\s*"([^"]*)"', svgString,  re.M|re.I) 
+    
+    # looping through all of the matches
+    for match in matches:
+      imageName = match.split("/").pop().split(".")[0]
+      imageData = ""
+      # looping through the images of json data 
+      for key in keys:
+        if(imageDataArray[key]['name'] == imageName):
+            imageData = imageDataArray[key]['encodedData']
+            break
+        
+      svgString = re.sub(match, imageData, svgString); # replacing the image href with image data
+  
+    return svgString
+    
 
   # This function coverts the provided SVG string to image or pdf file		
   def convertSVGtoImage(self, svgString, exportFileName, exportFileFormat):
@@ -136,12 +187,16 @@ class FcExporterController:
       fo.write(svgString);
       # Close opend file
       fo.close()
+
+      #using inkscape to conver SVG to PDF 
       p=subprocess.call(['/usr/bin/inkscape', '--file='+ self.SAVE_PATH +'temp.svg', '--export-pdf='+ self.SAVE_PATH +'tempExp.pdf'])
       f = open(self.SAVE_PATH +"tempExp.pdf", "r")
       exportedData  = f.read()
-      shutil.rmtree(self.SAVE_PATH, ignore_errors=True)
       f.close()
-    
+
+      # removing created directory and under its file
+      shutil.rmtree(self.SAVE_PATH, ignore_errors=True)
+      
     else:
       return "invalid file format."
 
