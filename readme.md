@@ -41,7 +41,7 @@ Location on the server where the image will be saved.
 `save_path`
 
 ## Mount the application
-You will have to specify the end point of the export server. In order to do this, you will have to mount the export handler to your rails application. Add the following lines in `urls.py`.
+You will have to specify the end point of the export server. In order to do this, you will have to mount the export handler to your django application. Add the following lines in `urls.py`.
 
 ~~~
 url(r'^<PATH>/', views.export_chart, name='exportChart'),

@@ -19,7 +19,7 @@ from wand.image import Image
 class FcExporterController:
 
   # settings variable declaration begins
-  SAVE_PATH = "export/Exported_Images/"
+  SAVE_PATH = "export/exported_images/"
   INKSCAPE_PATH = "/usr/bin/inkscape"
   # settings variable declaration ends
 
@@ -48,8 +48,10 @@ class FcExporterController:
 
     if(not isinstance(mkdirResponse, HttpResponse)):
       # This function `parseRequestParams` purse the request and create the request Data object
+      print self.request.POST["stream_type"]
       requestObject = self.parseRequestParams(self.request.POST)
-
+      print "+++++++++++"
+      print requestObject["stream_type"]
       if(type(requestObject) is str):
         return self.raiseError(400)
 
@@ -63,10 +65,6 @@ class FcExporterController:
           if(requestObject['imageData']):
            stream = self.replaceImageToSVG(stream, requestObject['imageData'])
           response = self.convertSVGtoImage(stream, requestObject['exportFileName'] ,requestObject['exportFormat'])
- 
-        # delete the files if exportaction is download
-        if(requestObject["exportAction"] == "download"):
-          shutil.rmtree(self.SAVE_PATH, ignore_errors=True)
 
         # sends the file as downloadable to the browser as a response 
         return response
@@ -113,6 +111,14 @@ class FcExporterController:
   	if(requestData.has_key("encodedImgData")):
   		imageData = requestData["encodedImgData"]
 
+  	
+  	if(requestData.has_key("meta_width") and requestData.has_key("meta_height")):
+  		width = requestData["meta_width"]
+  		height = requestData["meta_height"]
+  	else:
+  		return self.raiseError(101)
+  	
+  	
   	if(requestData["parameters"] != ""):
   		parametersArray = requestData["parameters"].split("|")
   	else:
@@ -122,12 +128,6 @@ class FcExporterController:
 	  	exportFileName = parametersArray[0].split("=").pop()
 	  	exportFormat = parametersArray[1].split("=").pop()
 	  	exportAction = parametersArray[2].split("=").pop()
-
-  	if(requestData.has_key("meta_width") and requestData.has_key("meta_height")):
-  		width = requestData["meta_width"]
-  		height = requestData["meta_height"]
-  	elif(exportFormat.lower() != "xls"):
-  		return self.raiseError(101)
 
   	# preparing the request object
   	requestObject = {
@@ -183,7 +183,7 @@ class FcExporterController:
 
   # This function coverts the provided SVG string to image or pdf file		
   def convertSVGtoImage(self, svgString, exportFileName, exportFileFormat):
-    self.SAVE_PATH = self.SAVE_PATH+exportFileName+"."+exportFileFormat
+    completeFileName = self.SAVE_PATH+exportFileName+"."+exportFileFormat
     
     if(exportFileFormat.lower() == 'svg'):
       exportedData = svgString
@@ -206,8 +206,8 @@ class FcExporterController:
       exportedData  = f.read()
       f.close()
 
-      # # removing created directory and under its file
-      # shutil.rmtree(self.SAVE_PATH, ignore_errors=True)
+      # removing created directory and under its file
+      shutil.rmtree(self.SAVE_PATH, ignore_errors=True)
       
     else:
       return "invalid file format."
@@ -215,20 +215,21 @@ class FcExporterController:
     # this code sends the provided file as downloadable to the browser as a response 
     response = HttpResponse(content_type='application/'+exportFileFormat)
     response.write(exportedData )
-    response["Content-Disposition"]= "attachment; filename="+exportFileName+"."+exportFileFormat  
+    response["Content-Disposition"]= "attachment; filename=converted." + exportFileFormat  
     
     return response
 
 
   # if the stream type is IMAGE-DATA then this mewthod will be called
   def prepareAndSendFile(self, stream, exportFileName, exportFileFormat):
-    self.SAVE_PATH = self.SAVE_PATH + exportFileName + "." + exportFileFormat
+    fileName = self.SAVE_PATH + exportFileName + "." + exportFileFormat
+    print fileName
     imageData = stream.split(',')[1];
-    fh = open(self.SAVE_PATH, "wb")
+    fh = open(fileName, "wb")
     fh.write(imageData.decode('base64'))
     fh.close()
 
-    f = open(self.SAVE_PATH, "r")
+    f = open(fileName, "r")
     exportedData  = f.read()
     f.close()
     #create a response object to send the image file in response 
@@ -236,4 +237,6 @@ class FcExporterController:
     response.write(exportedData)
     response["Content-Disposition"]= "attachment; filename="+exportFileName+"."+exportFileFormat  
     return response  
-          
+   
+    
+      

@@ -2,7 +2,7 @@
 <head>
 <title>My first chart using FusionCharts Suite XT</title>
 {% load static %}
-<script type="text/javascript" src="{% static "fusioncharts/fusioncharts.js" %}"></script>
+<script type="text/javascript" src="{% static "fusioncharts/3.11.0/fusioncharts.js" %}"></script>
 <script type="text/javascript">
   FusionCharts.ready(function(){
     var revenueChart = new FusionCharts({
@@ -33,7 +33,8 @@
         //"canvasBgColor": "#FF5904",
         "exportEnabled": 1,
         "exportAtClient": 0,
-        "exportHandler" : "http://127.0.0.1:8000/fc_exporter/"
+        "exportHandler" : "http://127.0.0.1:8000/fc_exporter/",
+        "_exportaction" :"save"
     },
     "data": [
         {
@@ -69,7 +70,7 @@
 
   });
 revenueChart.render();
-})
+});
 </script>
 </head>
 <body>
