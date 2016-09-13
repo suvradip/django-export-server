@@ -20,5 +20,5 @@ from . import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^fc/', views.fc, name='fc'),
-    url(r'^fc_exporter/', views.export_chart, name='exportChart'),
+    url(r'^FCExporter/', views.export_chart, name='exportChart'),
 ]

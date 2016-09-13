@@ -1,8 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from export_server import FcExporterController
-import re
-from xml.sax.saxutils import escape
+from FCExporter import FcExporterController
 def fc(request):
  	return  render(request, 'fusioncharts.html')
 
